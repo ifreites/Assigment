@@ -1,0 +1,40 @@
+# Load required libraries
+library(plotly)
+library(scales)
+library(lubridate)
+
+# Set seed for reproducibility
+set.seed(123)
+
+# Generate random data for valuation multiples and EBITDA growth
+valuation_multiples <- runif(50, min = 1, max = 10)
+ebitda_growth <- runif(50, min = 0, max = 0.15) * 100
+
+# Calculate linear regression line with specified correlation
+correlation <- 0.7
+ebitda_growth_predicted <- correlation * valuation_multiples + sqrt(1 - correlation^2) * rnorm(length(valuation_multiples))
+lm_line <- data.frame(valuation_multiples = valuation_multiples, ebitda_growth = ebitda_growth_predicted)
+
+# Create a data frame
+data <- data.frame(valuation_multiples, ebitda_growth)
+
+# Create scatter plot with linear regression line using Plotly
+scatter_plot <- plot_ly(data, x = ~valuation_multiples, y = ~ebitda_growth, mode = "markers", type = "scatter",
+                        marker = list(size = 5), name = "Data") %>%
+  add_trace(data = lm_line, x = ~valuation_multiples, y = ~ebitda_growth, mode = "lines", type = "scatter", 
+            name = "Linear Regression") %>%
+  layout(title = "Valuation Multiples vs EBITDA Growth",
+         xaxis = list(title = "Valuation Multiples (Enterprise Value / Revenue)"),
+         yaxis = list(title = "EBITDA Growth (%)"),
+         showlegend = TRUE,
+         margin = list(l = 60, r = 40, b = 60, t = 80),
+         annotations = list(
+           x = 1, y = 0,
+           text = paste("Date:", format(Sys.Date(), "%Y-%m-%d")),
+           showarrow = FALSE,
+           xref = "paper", yref = "paper", xanchor = "right", yanchor = "top",
+           font = list(size = 10, color = "black"))
+  )
+
+# Save plot as an interactive web page
+htmlwidgets::saveWidget(scatter_plot, file = "scatter_plot.html")
